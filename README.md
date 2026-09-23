@@ -10,7 +10,7 @@
 
 - 位置：composer 輸入卡片**上緣右側**（畫面中紅色框的位置），緊貼輸入框上方、靠右對齊。
 - 內容：只有 Workspace 名字，沒有前綴、沒有圖示、沒有背景。
-- 顏色：可在 **設定 → 通用 → Workspace 名稱** 調整（7 個主題色票 + 任意 CSS 色值）。
+- 顏色：可在 **設定 → 通用 → Workspace 名稱** 調整（7 個主題色票 + **系統選色器** + 任意 CSS 色值）。
 - 字體：`font-size: inherit`，跟隨輸入卡片的內容字級（預設 14px，受 ui-theme 的字級設定影響）。
 - 不遮擋操作：`pointer-events: none`，點擊會穿過去。
 
@@ -42,10 +42,17 @@ dsh --profile web --dump-config | Select-String 'harness-workspace-title'
 
 | 控制項 | 說明 |
 |---|---|
-| 顯示 | 總開關 |
 | 七個色票 | 主題淡色／次要／主要、藍、綠、黃、紅（都是 `--dsw-*` 主題變數，會跟隨明暗主題） |
+| **選色器** | 原生 `<input type="color">`：點一下開瀏覽器自己的選色面板（Chrome 另附滴管）。拖曳時只在本機預覽，放開後才寫入 |
 | 自訂顏色 | 任意 CSS 色值，例如 `#7cc4ff`、`rgb(124 196 255)`、`var(--dsw-alias-label-secondary)`；按 Enter 或離焦即套用 |
+| 顯示 | 總開關 |
 | 預設 | 清空自訂欄位（或填入預設值）並確認，即寫回預設 |
+
+選色器只吃 `#rrggbb`，所以目前值是主題變數時，會先用一個離屏探針元素
+（`getComputedStyle`）把 `var(--dsw-…)` 解析成實際顏色再顯示 —— 面板打開時
+看到的就是徽章真正在用的顏色，而不是 `var(...)` 這串字。解析不出來（例如
+透明值）才退回中性灰。從選色器挑色會寫入具體 hex，**就不再跟隨明暗主題**；
+要回到主題色請點色票。
 
 設定存放於 **profile 的 patch 文件**（`~/.dsh/profiles/web/cordis.patch.yml` 的
 `harness-workspace-title` 條目 `config`），由 DSH 的設定服務寫入：
@@ -101,7 +108,7 @@ Client 半邊掛進兩個 slot：
 
 ```powershell
 npm install          # 安裝 @deepseek-ai/schemastery
-npm test             # node --test（15 項：純函式 + apply/render 功能測試）
+npm test             # node --test（23 項：純函式 + apply/render 功能測試）
 ```
 
 改動 `lib/client.js` 後**硬重新整理**瀏覽器即可；改動 `lib/index.js`（Config schema）

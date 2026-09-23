@@ -24,6 +24,7 @@ const reactStub = {
   createElement: (type, props, ...children) => element(type, props, children),
   useCallback: (fn) => fn,
   useEffect: () => {},
+  useRef: (initial) => ({ current: initial }),
   useState: (initial) => [initial, () => {}],
   useSyncExternalStore: (subscribe, getSnapshot) => getSnapshot(),
 }
@@ -193,9 +194,42 @@ test('the settings row renders a row with the switch reflecting the stored value
   assert.equal(toggle.children[0].props.type, 'checkbox')
   assert.equal(toggle.children[0].props.checked, false)
 
-  const input = control.children.find((child) => child.type === 'input')
+  const picker = control.children.find((child) => child.props.className === 'hwt-picker')
+  assert.equal(picker.props.type, 'color')
+  assert.equal(picker.props.value, '#7cc4ff', 'a stored hex is shown as-is')
+  assert.equal(picker.props.disabled, false)
+
+  const input = control.children.find((child) => child.props.className === 'hwt-input')
+  assert.equal(input.props.type, 'text')
   assert.equal(input.props.value, '#7cc4ff')
 
   const swatches = control.children.find((child) => child.props.className === 'hwt-swatches')
   assert.equal(swatches.children.length, bundle.__internals.COLOR_PRESETS.length)
+})
+
+test('the colour picker shows a resolved theme token, never the token text', () => {
+  const form = fakeForm({ enabled: true, color: 'var(--dsw-alias-label-tertiary)' })
+  const { registrations, ctx } = recordingContext(form)
+  bundle.apply(ctx)
+  const row = registrations.find((record) => record.options.name === 'settings.general.item').component
+
+  // Without a live document the token cannot be resolved, so the documented
+  // fallback stands in rather than the literal "var(--…)" string.
+  const rendered = row({ t: (key) => key, form })
+  const picker = rendered.children[1].children.find((child) => child.props.className === 'hwt-picker')
+  assert.equal(picker.props.value, bundle.__internals.PICKER_FALLBACK_HEX)
+  assert.doesNotMatch(picker.props.value, /var\(/)
+})
+
+test('the picker is locked only by an unwritable namespace', () => {
+  const form = fakeForm({ enabled: true, color: '#7cc4ff' }, {
+    getSnapshot: () => ({ status: 'ready', value: { enabled: true, color: '#7cc4ff' }, revision: 1, writable: false, mode: 'host' }),
+  })
+  const { registrations, ctx } = recordingContext(form)
+  bundle.apply(ctx)
+  const row = registrations.find((record) => record.options.name === 'settings.general.item').component
+
+  const rendered = row({ t: (key) => key, form })
+  const picker = rendered.children[1].children.find((child) => child.props.className === 'hwt-picker')
+  assert.equal(picker.props.disabled, true)
 })

@@ -1,6 +1,6 @@
 {
   "name": "harness-workspace-title",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DSH Web plugin: shows the current Workspace name at the top-right of the composer input box, with a configurable colour",
   "keywords": [
     "deepseek",

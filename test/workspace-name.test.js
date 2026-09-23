@@ -32,6 +32,7 @@ const reactStub = {
   createElement: () => null,
   useCallback: (fn) => fn,
   useEffect: () => {},
+  useRef: (initial) => ({ current: initial }),
   useState: (initial) => [initial, () => {}],
   useSyncExternalStore: () => undefined,
 }
